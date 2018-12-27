@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Arduino Nodejs</title>
+    <style>
+        h1 {
+            text-align: center;
+            font-family: 'Lato', sans-serif;
+        }
+        h4 {
+            text-align: center;
+            font-family: 'Lato', sans-serif;
+        }
+        p {
+            text-align: center;
+            font-family: 'Lato', sans-serif;
+        }
+    </style>
+  </head>
+  <body>
+
+  	<h1>Monitorio Temperatura</h1>
+	<h4>Date: <span id="date" style="color: #FF5733"></span> - <span id="hora" style="color: #FF5733"></span></h4>
+	<h4>Temperatura: <span id="temp" style="color: #FF5733"></span></h4>
+  	<div style="position: relative; width:600px; margin: auto;">
+  		<canvas id="myChart"></canvas>
+  	</div>
+    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+    <script src="/socket.io/socket.io.js" charset="utf-8"></script>
+    <script type="text/javascript">
+      const socket = io();
+      var ctx = document.getElementById('myChart').getContext('2d');
+      var chart = new Chart(ctx, {
+          // The type of chart we want to create
+          type: 'line',
+          // The data for our dataset
+          data: {
+              labels: ["Serial"],
+              datasets: [{
+                    label: "Temperatura",
+                    borderColor: "#FF5733",
+                    data: [],
+                    fill: false,
+                    pointStyle: 'circle',
+                    backgroundColor: '#3498DB',
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    lineTension: 0,
+              }]
+          },
+          // Configuration options go here
+          options: {}
+      });
+      socket.on('arduino:data', function (data) {
+      	console.log(data);
+      	document.getElementById('date').innerHTML = data.date; //update the date
+      	document.getElementById('hora').innerHTML = data.time; //update the date
+      	document.getElementById('temp').innerHTML = data.temp; //update the date
+        // console.log(dataSerial);
+        chart.data.labels.push(data.time);
+        chart.data.datasets.forEach(dataset => {
+          dataset.data.push(data.temp);
+        });
+        chart.update();
+      });
+    </script>
+  </body>
+</html>
