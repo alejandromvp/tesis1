@@ -16,56 +16,91 @@
             text-align: center;
             font-family: 'Lato', sans-serif;
         }
+        #map {
+        height: 400px;  /* The height is 400 pixels */
+        width: 100%;  /* The width is the width of the web page */
+       }
+
     </style>
+    <script src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
   </head>
   <body>
 
-  	<h1>Monitorio Temperatura</h1>
+  <h1>Monitorio Temperatura</h1>
 	<h4>Date: <span id="date" style="color: #FF5733"></span> - <span id="hora" style="color: #FF5733"></span></h4>
 	<h4>Temperatura: <span id="temp" style="color: #FF5733"></span></h4>
   	<div style="position: relative; width:600px; margin: auto;">
   		<canvas id="myChart"></canvas>
   	</div>
     
+  <h1>geolocalizacion por google map</h1>
+  <h4>longitud: <span id="long" style="color: #FF5733"></span></h4>
+  <h4>latitud: <span id="latitud" style="color: #FF5733"></span></h4>
+  <div id="map"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
-    <script src="/socket.io/socket.io.js" charset="utf-8"></script>
-    <script type="text/javascript">
-      const socket = io();
-      var ctx = document.getElementById('myChart').getContext('2d');
-      var chart = new Chart(ctx, {
-          // The type of chart we want to create
-          type: 'line',
-          // The data for our dataset
-          data: {
-              labels: ["Serial"],
-              datasets: [{
-                    label: "Temperatura",
-                    borderColor: "#FF5733",
-                    data: [],
-                    fill: false,
-                    pointStyle: 'circle',
-                    backgroundColor: '#3498DB',
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
-                    lineTension: 0,
-              }]
-          },
-          // Configuration options go here
-          options: {}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+  <script src="/socket.io/socket.io.js" charset="utf-8"></script>
+
+  <script type="text/javascript">
+    var map = L.map('map').setView([-38.703032,-72.545545],15);
+    L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
+    maxZoom: 18
+    }).addTo(map);
+    L.control.scale().addTo(map);
+    const Marker = L.marker([-38.703032, -73.545545]);
+    map.addLayer(Marker);
+
+    const socket = io();
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'line',
+        // The data for our dataset
+        data: {
+            labels: ["Serial"],
+            datasets: [{
+                  label: "Temperatura",
+                  borderColor: "#FF5733",
+                  data: [],
+                  fill: false,
+                  pointStyle: 'circle',
+                  backgroundColor: '#3498DB',
+                  pointRadius: 5,
+                  pointHoverRadius: 7,
+                  lineTension: 0,
+            }]
+        },
+        // Configuration options go here
+        options: {}
+    });
+    socket.on('arduino:data', function (data) {
+    	console.log(data);
+    	document.getElementById('date').innerHTML = data.date; //update the date
+    	document.getElementById('hora').innerHTML = data.time; //update the date
+    	document.getElementById('temp').innerHTML = data.temp; //update the date
+      document.getElementById('long').innerHTML = data.longitud; //update the date
+      document.getElementById('latitud').innerHTML = data.latitud; //update the date
+      // console.log(dataSerial);
+      chart.data.labels.push(data.time);
+      chart.data.datasets.forEach(dataset => {
+        dataset.data.push(data.temp);
       });
-      socket.on('arduino:data', function (data) {
-      	console.log(data);
-      	document.getElementById('date').innerHTML = data.date; //update the date
-      	document.getElementById('hora').innerHTML = data.time; //update the date
-      	document.getElementById('temp').innerHTML = data.temp; //update the date
-        // console.log(dataSerial);
-        chart.data.labels.push(data.time);
-        chart.data.datasets.forEach(dataset => {
-          dataset.data.push(data.temp);
-        });
-        chart.update();
-      });
-    </script>
+      chart.update();
+       var lat = (data.latitud);
+       var lng = (data.longitud);
+       var newLatLng = new L.LatLng(lat, lng);
+       Marker.setLatLng(newLatLng);
+
+
+    });
+  </script>
+  <script>
+  
+</script>
+   <!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC_-01QnxTsXNgW25hkuo32-cMS7NZbTL0&callback=initMap"
+  type="text/javascript"></script> -->
+
   </body>
 </html>

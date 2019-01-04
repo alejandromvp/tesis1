@@ -7,21 +7,16 @@ const app = express();
 const server = http.createServer(app);
 const io = SocketIo.listen(server);
 
-// settings
-
+var long = -72.545545;
+var lat = -38.703032;
 // routes
 app.get('/', (req, res) => {
   res.sendFile(__dirname +'/index.html');
 });
 
-// static files
+
 app.use(express.static(path.join(__dirname, 'public')));
 
-/*const SerialPort = require('serialport');
-const Readline = SerialPort.parsers.Readline;
-const mySerial = new SerialPort('COM4', {
-  baudRate: 9600
-});*/
 
 const SerialPort = require('serialport')
 const Readline = require('@serialport/parser-readline')
@@ -32,14 +27,9 @@ port.pipe(parser)
 parser.on('data', function(data){
 	console.log(data);
 	var today = new Date();
-  	io.emit('arduino:data', {date: today.getDate()+"-"+(today.getMonth()+1)+"-"+today.getFullYear(), time: (today.getHours())+":"+(today.getMinutes()), temp:data});
-
+  	io.emit('arduino:data', {date: today.getDate()+"-"+(today.getMonth()+1)+"-"+today.getFullYear(), time: (today.getHours())+":"+(today.getMinutes()), temp:data, longitud:long,latitud:lat});
+    long = long - 0.0001;
 });
-/*parser.on('data', function (data) {
-  console.log(data.toString());
-  var today = new Date();
-  io.emit('arduino:data', {date: today.getDate()+"-"+(today.getMonth()+1)+"-"+today.getFullYear(), time: (today.getHours())+":"+(today.getMinutes()), temp:data.toString()});
-});*/
 
 parser.on('err', function (data) {
   console.log(err.message);
